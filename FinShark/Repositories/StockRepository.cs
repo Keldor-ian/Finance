@@ -2,6 +2,7 @@
 using FinShark.DTOs.Stock;
 using FinShark.Interfaces;
 using FinShark.Models;
+using FinShark.Queries.Stocks;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinShark.Repositories
@@ -14,7 +15,8 @@ namespace FinShark.Repositories
         {
             _context = context;
         }
-
+        
+        // Returns a stock by a supplied stockId
         public async Task<Stock?> GetStockById(int stockId)
         {
             var getStockById = await _context.Stocks.FirstOrDefaultAsync(s => s.StockId == stockId);
@@ -24,15 +26,61 @@ namespace FinShark.Repositories
             return getStockById;
         }
 
-        public async Task<List<Stock>> GetAllStocksAsync()
+        // Returns all stocks (and returns stock queries if supplied)
+        public async Task<List<Stock>> GetAllStocksAsync(StockQueryObject stockQuery)
         {
-            var getAllStocks = await _context.Stocks.ToListAsync();
 
-            if (getAllStocks == null) return null;
+            var stocks = _context.Stocks.AsQueryable();
 
-            return getAllStocks;
+            // Search Queries
+            
+            if (!string.IsNullOrWhiteSpace(stockQuery.Symbol))
+            {
+                stocks = stocks.Where(s => s.Symbol.Contains(stockQuery.Symbol.Trim()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(stockQuery.CompanyName))
+            {
+                stocks = stocks.Where(s => s.CompanyName.Contains(stockQuery.CompanyName.Trim()));
+            }
+
+            // Sort By Queries
+
+            if (!string.IsNullOrEmpty(stockQuery.SortBy))
+            {
+                if (stockQuery.SortBy.Equals("Symbol"))
+                {
+                    stocks = stockQuery.IsDescending ? stocks.OrderByDescending(s => s.Symbol) : stocks.OrderBy(s => s.Symbol);
+                }
+
+                if (stockQuery.SortBy.Equals("CompanyName"))
+                {
+                    stocks = stockQuery.IsDescending ? stocks.OrderByDescending(s => s.CompanyName) : stocks.OrderBy(s => s.CompanyName);
+                }
+            }
+
+            // Displays all stock's market caps that are LESS than the supplied value
+
+           if (stockQuery.MarketCap.HasValue)
+           {
+                stocks = stocks.Where(s => s.MarketCap <= stockQuery.MarketCap.Value);
+           }
+
+            // Displays all stock's cost that are LESS than the supplied value
+
+           if (stockQuery.StockCost.HasValue)
+           {
+                stocks = stocks.Where(s => s.StockCost <= stockQuery.StockCost.Value);
+           }
+
+            // Gets the number of stocks to skip if a page size and number is applied
+
+            var getStocksToSkip = (stockQuery.PageNumber - 1) * stockQuery.PageSize;
+
+            return await stocks.Skip(getStocksToSkip).Take(stockQuery.PageSize).ToListAsync();
         }
 
+        // Creates a stock
         public async Task<Stock> CreateStockAsync(Stock stockModel)
         {
             await _context.AddAsync(stockModel);
@@ -42,6 +90,7 @@ namespace FinShark.Repositories
             return stockModel;
         }
 
+        // Deletes a stock by a supplied stockId
         public async Task<Stock?> DeleteStockAsync(int stockId)
         {
             var stockModel = await _context.Stocks.FirstOrDefaultAsync(s => s.StockId == stockId);
@@ -55,6 +104,7 @@ namespace FinShark.Repositories
             return stockModel;
         }
 
+        // Updates a stock by a supplied stockId
         public async Task<Stock?> GetStockToUpdate(int stockId, UpdateStockFromCreateDto updateStockDto)
         {
             var stockModel = await _context.Stocks.FirstOrDefaultAsync(s => s.StockId == stockId);

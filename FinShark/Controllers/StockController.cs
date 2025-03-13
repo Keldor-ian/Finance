@@ -1,6 +1,7 @@
 ﻿using FinShark.DTOs.Stock;
 using FinShark.Interfaces;
 using FinShark.Mappers;
+using FinShark.Queries.Stocks;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,9 +19,9 @@ namespace FinShark.Controllers
 
         // Grab all stocks and convert them all to a StockDTO to display in API
         [HttpGet]
-        public async Task<IActionResult> GetAllStocks()
+        public async Task<IActionResult> GetAllStocks([FromQuery] StockQueryObject stockQuery)
         {
-            var getAllStocks = await _stockRepo.GetAllStocksAsync();
+            var getAllStocks = await _stockRepo.GetAllStocksAsync(stockQuery);
 
             var convertAllStocks = getAllStocks.Select(s => s.ToStockDTO()).ToList();
 
