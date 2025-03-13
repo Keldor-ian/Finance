@@ -1,0 +1,14 @@
+# Ignore Visual Studio specific files
+.vs/
+.vscode/
+
+# Ignore build output
+bin/
+obj/
+
+# Ignore system files (Windows example)
+Thumbs.db
+desktop.ini
+
+# Ignore Node modules (if working with Node.js)
+node_modules/
