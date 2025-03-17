@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using FinShark.DTOs.Comment;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 // Base DTOs are used for displaying of data
@@ -14,5 +15,6 @@ namespace FinShark.DTOs.Stock
         public decimal LastDiv { get; set; }
         public string Industry { get; set; } = string.Empty;
         public long MarketCap { get; set; }
+        public List<CommentDTO> Comments { get; set; } = new List<CommentDTO>();
     }
 }

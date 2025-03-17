@@ -15,7 +15,8 @@ namespace FinShark.Mappers
                 StockCost = stockModel.StockCost,
                 LastDiv = stockModel.LastDividend,
                 Industry = stockModel.Industry,
-                MarketCap = stockModel.MarketCap
+                MarketCap = stockModel.MarketCap,
+                Comments = stockModel.Comments.Select(c => c.ToCommentDTO()).ToList(),
             };
         }
         public static Stock ToStockFromCreateDto(this CreateStockRequestDTO stockDto)

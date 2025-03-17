@@ -34,7 +34,7 @@ namespace FinShark.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Please enter a valid Stock ID");
+                return BadRequest(ModelState);
             }
 
             var getStockById = await _stockRepo.GetStockById(stockId);
@@ -57,7 +57,7 @@ namespace FinShark.Controllers
 
             await _stockRepo.CreateStockAsync(stockModel);
             // What's the point of having stockId on the new object? Because it explicitly maps it to GetStockById(stockId) -> Which is the parameter
-            return CreatedAtAction(nameof(GetStockById), new { stockModel.StockId }, stockModel.ToStockDTO());
+            return CreatedAtAction(nameof(GetStockById), new { stockId = stockModel.StockId }, stockModel.ToStockDTO());
         }
 
         [HttpDelete]

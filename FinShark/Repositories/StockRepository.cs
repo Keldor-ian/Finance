@@ -19,7 +19,7 @@ namespace FinShark.Repositories
         // Returns a stock by a supplied stockId
         public async Task<Stock?> GetStockById(int stockId)
         {
-            var getStockById = await _context.Stocks.FirstOrDefaultAsync(s => s.StockId == stockId);
+            var getStockById = await _context.Stocks.Include(c => c.Comments).FirstOrDefaultAsync(s => s.StockId == stockId);
 
             if (getStockById == null) return null;
 
@@ -30,7 +30,7 @@ namespace FinShark.Repositories
         public async Task<List<Stock>> GetAllStocksAsync(StockQueryObject stockQuery)
         {
 
-            var stocks = _context.Stocks.AsQueryable();
+            var stocks = _context.Stocks.Include(c => c.Comments).AsQueryable();
 
             // Search Queries
             
@@ -83,7 +83,7 @@ namespace FinShark.Repositories
         // Creates a stock
         public async Task<Stock> CreateStockAsync(Stock stockModel)
         {
-            await _context.AddAsync(stockModel);
+            await _context.Stocks.AddAsync(stockModel);
 
             await _context.SaveChangesAsync();
 
@@ -122,5 +122,10 @@ namespace FinShark.Repositories
 
             return stockModel;
         }
+        public Task<bool> StockExists(int stockId)
+        {
+            return _context.Stocks.AnyAsync(s => s.StockId == stockId);
+        }
+
     }
 }
