@@ -7,6 +7,7 @@ namespace FinShark.Interfaces
     public interface IStockRepository
     {
         Task<Stock?> GetStockById(int stockId);
+        Task<Stock?> GetBySymbolAsync(string symbol);
         Task<List<Stock>> GetAllStocksAsync(StockQueryObject stockQuery);
         Task<Stock> CreateStockAsync(Stock stockModel);
         Task<Stock?> DeleteStockAsync(int stockId);

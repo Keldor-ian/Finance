@@ -13,6 +13,7 @@ namespace FinShark.Mappers
                 Title = commentModel.Title,
                 Content = commentModel.Content,
                 TimePosted = commentModel.TimePosted,
+                CreatedBy = commentModel.AppUser.UserName,
                 StockId = commentModel.StockId,
             };
         }

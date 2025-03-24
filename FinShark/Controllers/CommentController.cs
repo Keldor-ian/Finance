@@ -1,14 +1,13 @@
-﻿using FinShark.DTOs.Comment;
+﻿using FinShark.ClaimExtensions;
+using FinShark.DTOs.Comment;
 using FinShark.Interfaces;
 using FinShark.Mappers;
 using FinShark.Models;
+using FinShark.Queries.Comments;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.NetworkInformation;
 
-// Next Steps:
-
-// Add FK relationship between Comments and Stocks (Adding a list of comments to a stock)
-// Adding the Comment List property to the Stock/StockDTO
 
 namespace FinShark.Controllers
 {
@@ -18,45 +17,71 @@ namespace FinShark.Controllers
     {
         private readonly ICommentRepository _commentRepo;
         private readonly IStockRepository _stockRepo;
-        public CommentController(ICommentRepository commentRepo, IStockRepository stockRepo)
+        private readonly UserManager<AppUser> _userManager;
+        public CommentController(ICommentRepository commentRepo, IStockRepository stockRepo, UserManager<AppUser> userManager)
         {
             _commentRepo = commentRepo;
             _stockRepo = stockRepo;
+            _userManager = userManager;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllCommentsAsync([FromQuery] CommentQueryObject commentQuery)
+        {
+            var getAllComments = await _commentRepo.GetAllCommentsAsync(commentQuery);
+
+            var comments = getAllComments.Select(s => s.ToCommentDTO());
+
+            return Ok(comments);
         }
 
         [HttpGet]
         [Route("{commentId:int}")]
-
         public async Task<IActionResult> GetCommentById([FromRoute] int commentId)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             var getCommentById = await _commentRepo.GetCommentByIdAsync(commentId);
             
-            if (getCommentById == null) return BadRequest("The comment being retrieved doesn't exist!");
+            if (getCommentById == null)
+            {
+                return BadRequest("The comment being retrieved doesn't exist!");
+            }
 
             return Ok(getCommentById.ToCommentDTO());
         }
 
         [HttpPost]
         [Route("{stockId:int}")]
-
         public async Task<IActionResult> CreateCommentAsync([FromRoute] int stockId, [FromBody] CreateCommentRequestDTO commentDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            var getStock = await _stockRepo.StockExists(stockId);
+            if (!await _stockRepo.StockExists(stockId))
+            {
+                return BadRequest("Stock does not exist!");
+            }
 
-            if (getStock == false) return BadRequest($"Stock with an id: {stockId} was not found!");
+            var username = User.GetUsername();
+            var appUser = await _userManager.FindByNameAsync(username);
 
             var commentModel = commentDto.ToCommentFromCreateDTO(stockId);
+            commentModel.AppUserId = appUser.Id;
 
             await _commentRepo.CreateCommentAsync(commentModel);
 
-            if (commentModel == null) return BadRequest("Stock does not exist!");
+            if (commentModel == null)
+            {
+                return BadRequest("Stock does not exist!");
+            }
 
             return CreatedAtAction(nameof(GetCommentById), new { commentId = commentModel.CommentId }, commentModel.ToCommentDTO());
         }
-
     }
 }

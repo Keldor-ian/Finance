@@ -26,11 +26,17 @@ namespace FinShark.Repositories
             return getStockById;
         }
 
+        // Returns a stock by a supplied symbol
+        public async Task<Stock?> GetBySymbolAsync(string symbol)
+        {
+            return await _context.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol);
+        }
+
         // Returns all stocks (and returns stock queries if supplied)
         public async Task<List<Stock>> GetAllStocksAsync(StockQueryObject stockQuery)
         {
 
-            var stocks = _context.Stocks.Include(c => c.Comments).AsQueryable();
+            var stocks = _context.Stocks.Include(c => c.Comments).ThenInclude(a => a.AppUser).AsQueryable();
 
             // Search Queries
             
@@ -126,6 +132,5 @@ namespace FinShark.Repositories
         {
             return _context.Stocks.AnyAsync(s => s.StockId == stockId);
         }
-
     }
 }

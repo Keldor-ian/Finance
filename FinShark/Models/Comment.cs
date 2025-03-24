@@ -10,5 +10,9 @@
         // Navigation
         public Stock Stock { get; set; } = null!;
         public int StockId { get; set; }
+
+        // Navigation
+        public string AppUserId { get; set; } 
+        public AppUser AppUser { get; set; }
     }
 }

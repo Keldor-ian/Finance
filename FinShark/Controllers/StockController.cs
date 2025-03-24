@@ -2,11 +2,13 @@
 using FinShark.Interfaces;
 using FinShark.Mappers;
 using FinShark.Queries.Stocks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinShark.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/stock")] // Base URL of the Controller
     public class StockController : ControllerBase
@@ -39,7 +41,10 @@ namespace FinShark.Controllers
 
             var getStockById = await _stockRepo.GetStockById(stockId);
 
-            if (getStockById == null) return BadRequest("The stock being retrieved doesn't exist!");
+            if (getStockById == null)
+            {
+                return BadRequest("The stock being retrieved doesn't exist!");
+            }
 
             return Ok(getStockById.ToStockDTO());
         }
@@ -71,7 +76,10 @@ namespace FinShark.Controllers
 
             var getStockToDelete = await _stockRepo.DeleteStockAsync(stockId);
 
-            if (getStockToDelete == null) return BadRequest("The stock to be deleted doesn't exist!");
+            if (getStockToDelete == null)
+            {
+                return BadRequest("The stock to be deleted doesn't exist!");
+            }
 
             return Ok(getStockToDelete);
         }
@@ -87,7 +95,10 @@ namespace FinShark.Controllers
 
             var stockToUpdate = await _stockRepo.GetStockToUpdate(stockId, updateStockDto);
 
-            if (stockToUpdate == null) return BadRequest("The stock to be edited doesn't exist!");
+            if (stockToUpdate == null)
+            {
+                return BadRequest("The stock to be edited doesn't exist!");
+            }
 
             return Ok(stockToUpdate.ToStockDTO());
         }
